@@ -2,7 +2,7 @@
 The Web front end of the API system
 
 Modules:
-    3rd Party: Flask, json, werkzeug
+    3rd Party: Flask, json
     Internal: http_codes, endpoints
 
 Classes:
@@ -119,7 +119,7 @@ def about_endpoint():
 
 
 # /sites
-@app.route('/sites', methods=['GET', 'POST'])
+@app.route('/sites', methods=['GET', 'POST', 'PATCH', 'DELETE'])
 def sites_endpoint():
     '''
     Site management
@@ -146,9 +146,21 @@ def sites_endpoint():
     if request.method == 'GET':
         response = sites.get_sites()
 
-    # Handle a POST
-    else:
+    # Handle a POST (create a new site)
+    if request.method == 'POST':
         response = sites.post_sites(
+            body=request.json
+        )
+
+    # Handle a PATCH (update a site)
+    if request.method == 'PATCH':
+        response = sites.patch_sites(
+            body=request.json
+        )
+
+    # Handle a DELETE (remove a site)
+    if request.method == 'DELETE':
+        response = sites.delete_sites(
             body=request.json
         )
 
