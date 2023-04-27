@@ -15,6 +15,10 @@ Functions
         Get a list of sites
     post_sites
         Add a new site
+    patch_sites
+        Update a site
+    delete_sites
+        Delete a site
     get_site_devices
         Get a list of devices in a site
     post_site_devices
@@ -66,7 +70,8 @@ def post_sites(body):
     Handle a POST request to the /sites endpoint
 
     Parameters:
-        None
+        body : json
+            The body of the request
 
     Raises:
         None
@@ -84,12 +89,64 @@ def post_sites(body):
     return response, code
 
 
+def patch_sites(body):
+    '''
+    Handle a PATCH request to the /sites endpoint
+
+    Parameters:
+        body : json
+            The body of the request
+
+    Raises:
+        None
+
+    Returns:
+        response : JSON
+            The JSON response with the requested information or error
+            For a POST, this echoes back the request body
+        code : int
+            The HTTP response code
+    '''
+
+    response = body
+    code = http_codes.HTTP_OK
+    return response, code
+
+
+def delete_sites(body):
+    '''
+    Handle a DELETE request to the /sites endpoint
+
+    Parameters:
+        body : json
+            The body of the request
+
+    Raises:
+        None
+
+    Returns:
+        response : str
+            Return an empty string for a DELETE
+        code : int
+            The HTTP response code
+    '''
+
+    response = ''
+    code = http_codes.HTTP_NOCONTENT
+    return response, code
+
+
 def get_site_devices(site_id, vendor, dev_type):
     '''
     Handle a GET request to the /sites/:site_id endpoint
 
     Parameters:
-        None
+        site_id : str
+            The UUID of the site
+        vendor : str
+            The device vendor (eg, 'juniper')
+        dev_type : str
+            The type of a device (eg, 'switch')
 
     Raises:
         None
@@ -126,7 +183,8 @@ def post_site_devices(site_id, body):
     Handle a POST request to the /sites/:site_id endpoint
 
     Parameters:
-        None
+        body : json
+            The body of the request
 
     Raises:
         None
