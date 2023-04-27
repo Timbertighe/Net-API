@@ -519,10 +519,3 @@ class SqlServer:
 
         # If all was good, return True
         return True
-
-
-'''
-To Do
-Update multiple columns at once
-Handle integers (currently escaping quotes makes this all strings)
-'''
