@@ -23,6 +23,10 @@ Functions
         Get a list of devices in a site
     post_site_devices
         Create a new device in a site
+    patch_site_devices
+        Update a device's information
+    delete_site_devices
+        Delete a device
 
 Exceptions:
 
@@ -183,6 +187,8 @@ def post_site_devices(site_id, body):
     Handle a POST request to the /sites/:site_id endpoint
 
     Parameters:
+        site_id : str
+            The UUID of the site
         body : json
             The body of the request
 
@@ -216,5 +222,82 @@ def post_site_devices(site_id, body):
             "type": "switch"
         }
         code = http_codes.HTTP_CREATED
+
+    return response, code
+
+
+def patch_site_devices(site_id, body):
+    '''
+    Handle a PATCH request to the /sites/:site_id endpoint
+
+    Parameters:
+        site_id : str
+            The UUID of the site
+        body : json
+            The body of the request
+
+    Raises:
+        None
+
+    Returns:
+        response : JSON
+            The JSON response with the updated object
+        code : int
+            The HTTP response code
+    '''
+
+    # If there are fields missing, return an error
+    if 'device_id' not in body:
+        response = {
+            "status": "error",
+            "error": "Bad parameters"
+        }
+        code = http_codes.HTTP_BADREQUEST
+
+    # Update the device in the site
+    else:
+        response = {
+            "device_id": "acde070d-8c4c-4f0d-9d8a-162843c10444",
+            "hostname": "hq-sw01",
+            "vendor": "juniper",
+            "type": "switch"
+        }
+        code = http_codes.HTTP_CREATED
+
+    return response, code
+
+
+def delete_site_devices(site_id, body):
+    '''
+    Handle a DELETE request to the /sites/:site_id endpoint
+
+    Parameters:
+        site_id : str
+            The UUID of the site
+        body : json
+            The body of the request
+
+    Raises:
+        None
+
+    Returns:
+        response : str
+            An empty string, or JSON error
+        code : int
+            The HTTP response code
+    '''
+
+    # If there are fields missing, return an error
+    if 'device_id' not in body:
+        response = {
+            "status": "error",
+            "error": "Bad parameters"
+        }
+        code = http_codes.HTTP_BADREQUEST
+
+    # Update the device in the site
+    else:
+        response = ''
+        code = http_codes.HTTP_NOCONTENT
 
     return response, code
