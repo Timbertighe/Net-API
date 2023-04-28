@@ -3,7 +3,7 @@ The Web front end of the API system
 
 Modules:
     3rd Party: Flask, json
-    Internal: http_codes, endpoints
+    Internal: endpoints, config
 
 Classes:
 
@@ -66,6 +66,7 @@ Author:
 
 from flask import Flask, request
 import json
+
 import endpoints.http_codes as http_codes
 import endpoints.sites as sites
 import endpoints.devices as devices
@@ -77,11 +78,7 @@ import endpoints.mac as mac
 import endpoints.routing as routing
 import endpoints.ospf as ospf
 
-WEB_PORT = 5000
-DEBUG = True
-HOST_IP = '0.0.0.0'
-VERSION = 'beta'
-STATUS = 'up'
+import config
 
 
 # Initialise the Flask class
@@ -109,8 +106,8 @@ def about_endpoint():
     '''
 
     response = {
-        "version": VERSION,
-        "status": STATUS
+        "version": config['VERSION'],
+        "status": config['STATUS']
     }
     code = http_codes.HTTP_OK
 
@@ -786,7 +783,7 @@ def ospf_endpoint(device_id):
 # Start the Flask app
 if __name__ == '__main__':
     app.run(
-        debug=DEBUG,
-        host=HOST_IP,
-        port=WEB_PORT
+        debug=config.DEBUG,
+        host=config.HOST_IP,
+        port=config.WEB_PORT
     )
