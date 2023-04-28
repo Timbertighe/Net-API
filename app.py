@@ -169,7 +169,10 @@ def sites_endpoint():
 
 
 # /sites/:site_id
-@app.route('/sites/<string:site_id>', methods=['GET', 'POST'])
+@app.route(
+    '/sites/<string:site_id>',
+    methods=['GET', 'POST', 'PATCH', 'DELETE']
+)
 def site_devices_endpoint(site_id):
     '''
     Manage devices within a site
@@ -227,6 +230,20 @@ def site_devices_endpoint(site_id):
     # Handle a POST
     if request.method == 'POST':
         response = sites.post_site_devices(
+            site_id=site_id,
+            body=request.json
+        )
+
+    # Handle a PATCH
+    if request.method == 'PATCH':
+        response = sites.patch_site_devices(
+            site_id=site_id,
+            body=request.json
+        )
+
+    # Handle a DELETE
+    if request.method == 'DELETE':
+        response = sites.delete_site_devices(
             site_id=site_id,
             body=request.json
         )
