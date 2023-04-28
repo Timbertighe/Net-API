@@ -381,8 +381,9 @@ class SqlServer:
 
         Returns
         -------
-        entry : str
-            The entry, it it was found
+        entry : list
+            A list of entries
+            Each entry is a pyodbc.Row object
         None :
             If there was no match
         False : boolean
@@ -391,15 +392,20 @@ class SqlServer:
 
         # Build the SQL string
         sql_string = "SELECT *\n"
-        sql_string += f"FROM [{self.db}].[dbo].[{self.table}]\n"
-        sql_string += f"\nWHERE {field} = \'{value}\';"
+        sql_string += f"FROM [{self.db}].[dbo].[{self.table}]"
+
+        if field == '':
+            sql_string += ';'
+        else:
+            sql_string += '\n'
+            sql_string += f"WHERE {field} = \'{value}\';"
 
         # Send the SQL command to the server and execute
-        entry = None
+        entry = []
         try:
             self.cursor.execute(sql_string)
             for row in self.cursor:
-                entry = row
+                entry.append(row)
 
         # If there was a problem reading
         except Exception as err:
