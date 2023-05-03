@@ -3,7 +3,7 @@ The Web front end of the API system
 
 Modules:
     3rd Party: Flask, json
-    Internal: endpoints, config
+    Internal: endpoints, config, basic_auth
 
 Classes:
 
@@ -78,6 +78,8 @@ import endpoints.mac as mac
 import endpoints.routing as routing
 import endpoints.ospf as ospf
 
+import security.basic_auth as basic_auth
+
 import config
 
 
@@ -105,11 +107,31 @@ def about_endpoint():
             The HTTP response code
     '''
 
-    response = {
-        "version": config['VERSION'],
-        "status": config['STATUS']
-    }
-    code = http_codes.HTTP_OK
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if basic_auth.api_auth(request.headers.get('authorization')):
+        response = {
+            "version": config.VERSION,
+            "status": config.STATUS
+        }
+        code = http_codes.HTTP_OK
+
+    else:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
 
     # Return the response as JSON, as well as the error code
     return json.dumps(response), code
@@ -138,6 +160,26 @@ def sites_endpoint():
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Handle a GET request
     if request.method == 'GET':
@@ -193,6 +235,26 @@ def site_devices_endpoint(site_id):
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Get parameters from the request
     args = request.args
@@ -269,6 +331,26 @@ def dev_list_endpoint():
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Get parameters from the request
     args = request.args
@@ -347,6 +429,26 @@ def devices_endpoint(device_id, **kwargs):
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Get parameters from the request
     args = request.args
@@ -440,6 +542,26 @@ def dev_hardware_endpoint(device_id):
             The HTTP response code
     '''
 
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
     # Get parameters from the request
     args = request.args
 
@@ -491,6 +613,26 @@ def interfaces_endpoint(device_id):
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Get parameters from the request
     args = request.args
@@ -566,6 +708,26 @@ def lldp_endpoint(device_id):
             The HTTP response code
     '''
 
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
     # Get parameters from the request
     args = request.args
     interface = False
@@ -610,6 +772,26 @@ def vlans_endpoint(device_id):
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Get parameters from the request
     args = request.args
@@ -662,6 +844,26 @@ def mac_table_endpoint(device_id):
             The HTTP response code
     '''
 
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
     # Get parameters from the request
     args = request.args
     interface = False
@@ -712,6 +914,26 @@ def routing_table_endpoint(device_id):
             The HTTP response code
     '''
 
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
     # Get parameters from the request
     args = request.args
     route = False
@@ -757,6 +979,26 @@ def ospf_endpoint(device_id):
         code : int
             The HTTP response code
     '''
+
+    # Check if the Authorization header is present
+    if request.headers.get('Authorization') is None:
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
+
+    # Check if this request is authenticated
+    if not basic_auth.api_auth(request.headers.get('authorization')):
+        # If not, return a 401
+        code = http_codes.HTTP_UNAUTHORIZED
+        response = {
+            "status": "error",
+            "error": "Failed Authentication"
+        }
+        return json.dumps(response), code
 
     # Handle a GET request
     if request.method == 'GET':
