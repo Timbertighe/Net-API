@@ -34,6 +34,9 @@ Misc Variables:
     HTTP_BADREQUEST : int
         The '400 - Bad Request' return code
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+    HTTP_UNAUTHORIZED : int
+        The '401 - Unauthorized' code
+        https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
     HTTP_NOTFOUND : int
         The '404 - Not found' code
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
@@ -43,7 +46,7 @@ Misc Variables:
 
 
 Author:
-    Luke Robertson - April 2023
+    Luke Robertson - May 2023
 """
 
 HTTP_OK = 200
@@ -51,5 +54,6 @@ HTTP_CREATED = 201
 HTTP_ACCEPTED = 202
 HTTP_NOCONTENT = 204
 HTTP_BADREQUEST = 400
+HTTP_UNAUTHORIZED = 401
 HTTP_NOTFOUND = 404
 HTTP_CONFLICT = 409
