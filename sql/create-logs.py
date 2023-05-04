@@ -45,8 +45,11 @@ DATABASE = 'NetworkAssistant_Alerts'
 TABLE_NAME = 'logs'
 FIELDS = {
     'id': 'int IDENTITY(1,1) PRIMARY KEY not null',
+    'logdate': 'date not null',
+    'logtime': 'time not null',
     'src': 'varchar(16) not null',
     'endpoint': 'varchar(128) not null',
+    'method': 'varchar(8) not null',
     'headers': 'varchar(max) not null',
     'req_body': 'varchar(max) null',
     'return_code': 'smallint not null',
