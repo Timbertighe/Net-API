@@ -254,98 +254,14 @@ def site_devices_endpoint(site_id):
     return json.dumps(response), code
 
 
-# /devices
-@app.route('/devices', methods=['GET'])
-def dev_list_endpoint():
-    '''
-    Gets a list of all devices in the environment
-
-    Parameters:
-        methods : list
-            A list of methods this route will accept
-
-    Raises:
-        None
-
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
-    '''
-
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
-
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
-
-    # Get parameters from the request
-    args = request.args
-    vendor = False
-    dev_type = False
-
-    # Check for the 'vendor' parameter
-    if 'vendor' in args:
-        vendor = args.getlist('vendor')
-
-        # There can only be one vendor
-        if len(vendor) != 1:
-            response = {
-                "status": "error",
-                "error": "Bad JSON"
-            }
-            code = http_codes.HTTP_BADREQUEST
-            return json.dumps(response), code
-
-    # Check for the 'type' parameter
-    if 'type' in args:
-        dev_type = args.getlist('type')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = devices.get_devices(
-            vendor=vendor,
-            dev_type=dev_type
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
-
-
 # /devices/:device_id
 # /devices/:device_id/op
-# /devices/sites/:site_id/:device_id
-# /devices/sites/:site_id/:device_id/op
 @app.route(
     '/devices/<string:device_id>',
     methods=['GET', 'PATCH']
 )
 @app.route(
     '/devices/<string:device_id>/op',
-    methods=['POST']
-)
-@app.route(
-    '/sites/<string:site_id>/<string:device_id>',
-    methods=['GET', 'PATCH']
-)
-@app.route(
-    '/sites/<string:site_id>/<string:device_id>/op',
     methods=['POST']
 )
 def devices_endpoint(device_id, **kwargs):
@@ -372,6 +288,20 @@ def devices_endpoint(device_id, **kwargs):
         code : int
             The HTTP response code
     '''
+
+    with devices.Devices(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            elif request.method == 'POST':
+                endpoint.post()
+            elif request.method == 'PATCH':
+                endpoint.patch()
+
+        code = endpoint.code
+        response = endpoint.response
+
+    return json.dumps(response), code
 
     # Check if the Authorization header is present
     if request.headers.get('Authorization') is None:
