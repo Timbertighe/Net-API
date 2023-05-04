@@ -22,6 +22,8 @@ Misc Variables:
         The SQL server
     DATABASE : str
         The SQL database name
+    LOG_TABLE : str
+        The SQL table name
 
     WEB_PORT : int
         The port to run the API on
@@ -47,8 +49,9 @@ Author:
 """
 
 # SQL configuration
-SQLSERVER = 'servername'
-DATABASE = 'database name'
+SQLSERVER = 'Server Name'
+DATABASE = 'Database Name'
+LOG_TABLE = 'Table Name'
 
 # Flask Configuration
 WEB_PORT = 5000
