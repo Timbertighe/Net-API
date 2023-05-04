@@ -352,6 +352,7 @@ class SqlServer:
             else:
                 print(f"SQL execution error: {err}")
                 print(f"attempted to write:\n{fields}")
+                print(sql_string)
             return False
 
         # Commit the transaction
