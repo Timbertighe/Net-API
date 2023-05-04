@@ -2,31 +2,19 @@
 Handle queries about sites
 
 Modules:
-    3rd Party: uuid, traceback
+    3rd Party: uuid
     Internal: http_codes
 
 Classes:
 
-    None
+    Sites
+        Handle queries about sites
+    SiteDevices
+        Handle queries about devices in a site
 
 Functions
 
-    get_sites
-        Get a list of sites
-    post_sites
-        Add a new site
-    patch_sites
-        Update a site
-    delete_sites
-        Delete a site
-    get_site_devices
-        Get a list of devices in a site
-    post_site_devices
-        Create a new device in a site
-    patch_site_devices
-        Update a device's information
-    delete_site_devices
-        Delete a device
+    None
 
 Exceptions:
 
@@ -47,8 +35,10 @@ Author:
 """
 
 import endpoints.http_codes as http_codes
+import endpoints.api as api
 import config
 from sql.sql import SqlServer
+
 import uuid
 
 
@@ -56,685 +46,698 @@ SITE_TABLE = 'sites'
 DEVICE_TABLE = 'devices'
 
 
-def get_sites():
+class Sites(api.ApiCall):
     '''
-    Handle a GET request to the /sites endpoint
+    Create an object to represent the Sites endpoint
 
-    Parameters:
-        None
+    Supports being instantiated with the 'with' statement
 
-    Raises:
-        None
+    Attributes
+    ----------
+    request : flask.request
+        The request object from Flask
 
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
+    Methods
+    -------
+    get()
+        Handle a GET request to the /sites endpoint
+    post()
+        Handle a POST request to the /sites endpoint
+    patch()
+        Handle a PATCH request to the /sites endpoint
+    delete()
+        Handle a DELETE request to the /sites endpoint
     '''
 
-    # Connect to the database and get a list of all sites
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        # Empty field and value mean 'get all records'
-        output = site_sql.read(
-            field='',
-            value=''
-        )
+    def __init__(self, request):
+        '''
+        Class constructor
 
-    # if there was a response, build it into a list of entries
-    if output:
-        response = []
-        for record in output:
-            entry = {
-                "site_id": record[0],
-                "site_name": record[1]
+        Parameters:
+            request : flask.request
+                The request object from Flask
+
+        Raises:
+            None
+
+        Returns:
+            None
+        '''
+
+        # Call the superclass constructor
+        super().__init__(request)
+
+    def get(self):
+        '''
+        Handle a GET request to the /sites endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            None
+        '''
+
+        # Connect to the database and get a list of all sites
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            # Empty field and value mean 'get all records'
+            output = site_sql.read(
+                field='',
+                value=''
+            )
+
+        # if there was a response, build it into a list of entries
+        if output:
+            self.response = []
+            for record in output:
+                entry = {
+                    "site_id": record[0],
+                    "site_name": record[1]
+                }
+                self.response.append(entry)
+                self.code = http_codes.HTTP_OK
+
+        else:
+            self.response = ''
+            self.code = http_codes.HTTP_NOTFOUND
+
+    def post(self):
+        '''
+        Handle a POST request to the /sites endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
+
+        # Check if the site name already exists
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            output = site_sql.read(
+                field='name',
+                value=self.body['site_name']
+            )
+
+        # If there was a response, return an error
+        if output:
+            self.response = {
+                "status": "error",
+                "error": "Site name already exists"
             }
-            response.append(entry)
-            code = http_codes.HTTP_OK
+            self.code = http_codes.HTTP_CONFLICT
+            return
 
-    else:
-        response = ''
-        code = http_codes.HTTP_NOTFOUND
+        # Generate a UUID
+        site_id = uuid.uuid4()
 
-    return response, code
-
-
-def post_sites(body):
-    '''
-    Handle a POST request to the /sites endpoint
-
-    Parameters:
-        body : json
-            The body of the request
-
-    Raises:
-        None
-
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
-    '''
-
-    # Check if the site name already exists
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        output = site_sql.read(
-            field='name',
-            value=body['site_name']
-        )
-
-    # If there was a response, return an error
-    if output:
-        response = {
-            "status": "error",
-            "error": "Site name already exists"
+        # Build a dictionary of fields
+        fields = {
+            'id': site_id,
+            'name': self.body['site_name']
         }
-        code = http_codes.HTTP_CONFLICT
-        return response, code
 
-    # Generate a UUID
-    site_id = uuid.uuid4()
+        # Connect to the database and add a new site record
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            output = site_sql.add(
+                fields=fields,
+            )
 
-    # Build a dictionary of fields
-    fields = {
-        'id': site_id,
-        'name': body['site_name']
-    }
-
-    # Connect to the database and add a new site record
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        output = site_sql.add(
-            fields=fields,
-        )
-
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-    else:
-        response = {
-            "site_id": site_id,
-            "site_name": body['site_name']
-        }
-        code = http_codes.HTTP_CREATED
-
-    return response, code
-
-
-def patch_sites(body):
-    '''
-    Handle a PATCH request to the /sites endpoint
-
-    Parameters:
-        body : json
-            The body of the request
-
-    Raises:
-        None
-
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
-    '''
-
-    # Build a dictionary of fields
-    fields = {
-        'name': body['site_name']
-    }
-
-    # Connect to the database and update the site record
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        output = site_sql.update(
-            field='id',
-            value=body['site_id'],
-            body=fields,
-        )
-
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-    else:
-        response = {
-            "site_id": body['site_id'],
-            "site_name": body['site_name']
-        }
-        code = http_codes.HTTP_OK
-
-    return response, code
-
-
-def delete_sites(body):
-    '''
-    Handle a DELETE request to the /sites endpoint
-
-    Parameters:
-        body : json
-            The body of the request
-
-    Raises:
-        None
-
-    Returns:
-        response : str
-            Return an empty string for a DELETE
-        code : int
-            The HTTP response code
-    '''
-
-    # Connect to the database and delete the site record
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        output = site_sql.delete(
-            field='id',
-            value=body['site_id'],
-        )
-
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-    else:
-        response = ''
-        code = http_codes.HTTP_NOCONTENT
-
-    return response, code
-
-
-def get_site_devices(site_id, vendor, dev_type):
-    '''
-    Handle a GET request to the /sites/:site_id endpoint
-
-    Parameters:
-        site_id : str
-            The UUID of the site
-        vendor : str
-            The device vendor (eg, 'juniper')
-        dev_type : str
-            The type of a device (eg, 'switch')
-
-    Raises:
-        None
-
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
-    '''
-
-    # Check if we're filtering by vendor or device type
-    if vendor:
-        pass
-
-    if dev_type:
-        pass
-
-    # Connect to the database and get a list devices in a site
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=DEVICE_TABLE
-    ) as site_sql:
-        output = site_sql.read(
-            field='site',
-            value=site_id
-        )
-
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": ("Site ID is incorrect, "
-                      "or there are no devices in the site")
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-    # Otherwise, build the response
-    else:
-        response = []
-        for record in output:
-            entry = {
-                "device_id": record[0],
-                "hostname": record[1],
-                "site": record[2],
-                "vendor": record[3],
-                "type": record[4],
-                "auth_type": record[5],
-                "username": record[6],
-                "secret": record[7],
-                "salt": record[8],
-                "token": record[9],
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
             }
-            response.append(entry)
-        code = http_codes.HTTP_OK
+            self.code = http_codes.HTTP_BADREQUEST
 
-    return response, code
+        else:
+            self.response = {
+                "site_id": str(site_id),
+                "site_name": self.body['site_name']
+            }
+            self.code = http_codes.HTTP_CREATED
+
+    def patch(self):
+        '''
+        Handle a PATCH request to the /sites endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
+
+        # Build a dictionary of fields
+        fields = {
+            'name': self.body['site_name']
+        }
+
+        # Connect to the database and update the site record
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            output = site_sql.update(
+                field='id',
+                value=self.body['site_id'],
+                body=fields,
+            )
+
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+        else:
+            self.response = {
+                "site_id": self.body['site_id'],
+                "site_name": self.body['site_name']
+            }
+            self.code = http_codes.HTTP_OK
+
+    def delete(self):
+        '''
+        Handle a DELETE request to the /sites endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
+
+        # Connect to the database and delete the site record
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            output = site_sql.delete(
+                field='id',
+                value=self.body['site_id'],
+            )
+
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+        else:
+            self.response = ''
+            self.code = http_codes.HTTP_NOCONTENT
 
 
-def post_site_devices(site_id, body):
+class SiteDevices(api.ApiCall):
     '''
-    Handle a POST request to the /sites/:site_id endpoint
+    Create an object to represent the Sites endpoint
 
-    Parameters:
-        site_id : str
-            The UUID of the site
-        body : json
-            The body of the request
+    Supports being instantiated with the 'with' statement
 
-    Raises:
-        None
+    Attributes
+    ----------
+    request : flask.request
+        The request object from Flask
 
-    Returns:
-        response : JSON
-            The JSON response with the requested information or error
-            For a POST, this echoes back the request body
-        code : int
-            The HTTP response code
-    '''
-
-    # If there are fields missing, return an error
-    if ('hostname' not in body or
-            'vendor' not in body or
-            'auth_type' not in body or
-            'type' not in body):
-        response = {
-            "status": "error",
-            "error": "Bad parameters"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-        return response, code
-
-    # Check if the site exists
-    if not site_exists(site_id):
-        response = {
-            "status": "error",
-            "error": "Site ID is incorrect"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-        return response, code
-
-    # Check if the device already exists
-    if device_exists(
-        site_id=site_id,
-        device_id=body['device_id'],
-        hostname=body['hostname']
-    ):
-        response = {
-            "status": "error",
-            "error": "Device already exists"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-        return response, code
-
-    # Generate a UUID
-    device_id = uuid.uuid4()
-
-    # Build a dictionary of fields
-    fields = {
-        'id': device_id,
-        'name': body['hostname'],
-        'site': site_id,
-        'vendor': body['vendor'],
-        'type': body['type'],
-        'auth_type': body['auth_type'],
-    }
-
-    # Handle auth_type
-    if body['auth_type'] == 'secret':
-        fields['secret'] = body['secret']
-        fields['username'] = body['username']
-        fields['salt'] = body['salt']
-    elif body['auth_type'] == 'token':
-        fields['token'] = body['token']
-    else:
-        response = {
-            "status": "error",
-            "error": "Wrong auth_type"
-        }
-        code = http_codes.HTTP_BADREQUEST
-        return response, code
-
-    # Connect to the database and add a new device record
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=DEVICE_TABLE
-    ) as site_sql:
-        output = site_sql.add(
-            fields=fields,
-        )
-
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
-
-    # Otherwise, return the new device
-    else:
-        response = {
-            "device_id": device_id,
-            "hostname": body['hostname'],
-            "site": site_id,
-            "vendor": body['vendor'],
-            "type": body['type'],
-            "auth_type": body['auth_type'],
-            "username": body['username'],
-            "secret": body['secret'],
-            "salt": body['salt'],
-            "token": body['token']
-        }
-        code = http_codes.HTTP_CREATED
-
-    return response, code
-
-
-def patch_site_devices(site_id, body):
-    '''
-    Handle a PATCH request to the /sites/:site_id endpoint
-
-    Parameters:
-        site_id : str
-            The UUID of the site
-        body : json
-            The body of the request
-
-    Raises:
-        None
-
-    Returns:
-        response : JSON
-            The JSON response with the updated object
-        code : int
-            The HTTP response code
+    Methods
+    -------
+    get()
+        Handle a GET request to the /sites/:site_id endpoint
+    post()
+        Handle a POST request to the /sites/:site_id endpoint
+    patch()
+        Handle a PATCH request to the /sites/:site_id endpoint
+    delete()
+        Handle a DELETE request to the /sites/:site_id endpoint
     '''
 
-    # If there are fields missing, return an error
-    if 'device_id' not in body:
-        response = {
-            "status": "error",
-            "error": "Bad parameters"
-        }
-        code = http_codes.HTTP_BADREQUEST
+    def __init__(self, request, site_id):
+        '''
+        Class constructor
 
-        return response, code
+        Parameters:
+            request : flask.request
+                The request object from Flask
 
-    # Check if the site exists
-    if not site_exists(site_id):
-        response = {
-            "status": "error",
-            "error": "Site ID is incorrect"
-        }
-        code = http_codes.HTTP_BADREQUEST
+        Raises:
+            None
 
-        return response, code
+        Returns:
+            None
+        '''
 
-    # Build a dictionary of fields
-    #   Only include fields that are in the body
-    fields = {
-        'id': body['device_id'],
-        'site': site_id,
-    }
+        # Call the superclass constructor
+        super().__init__(request)
 
-    if 'hostname' in body:
-        fields['name'] = body['hostname']
+        # Set the site_id
+        self.site_id = site_id
 
-    if 'vendor' in body:
-        fields['vendor'] = body['vendor']
+        # Extract parameters from the request
+        self.vendor = False
+        self.dev_type = False
 
-    if 'type' in body:
-        fields['type'] = body['type']
+        # Check for the 'vendor' parameter
+        if 'vendor' in self.args:
+            vendor = self.args.getlist('vendor')
 
-    if 'auth_type' in body:
-        fields['auth_type'] = body['auth_type']
+            # There can only be one vendor
+            if len(vendor) != 1:
+                response = {
+                    "status": "error",
+                    "error": "Bad JSON"
+                }
+                code = http_codes.HTTP_BADREQUEST
+                return response, code
 
-    if 'username' in body:
-        fields['username'] = body['username']
+        # Check for the 'type' parameter
+        if 'type' in self.args:
+            self.dev_type = self.args.getlist('type')
 
-    if 'secret' in body:
-        fields['secret'] = body['secret']
+    def get(self):
+        '''
+        Handle a GET request to the /sites/:site_id endpoint
 
-    if 'salt' in body:
-        fields['salt'] = body['salt']
+        Parameters:
+            None
 
-    if 'token' in body:
-        fields['token'] = body['token']
+        Raises:
+            None
 
-    # Send the fields to the database
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=DEVICE_TABLE
-    ) as site_sql:
-        output = site_sql.update(
-            field='id',
-            value=body['device_id'],
-            body=fields
-        )
+        Returns:
+            None
+        '''
 
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
+        # Check if the site exists
+        if not self.site_exists(self.site_id):
+            self.response = {
+                "status": "error",
+                "error": "Site ID is incorrect"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    # Otherwise, return the updated device
-    else:
-        # Read the device from the database
+            return
+
+        # Check if we're filtering by vendor or device type
+        if self.vendor:
+            pass
+
+        if self.dev_type:
+            pass
+
+        # Connect to the database and get a list devices in a site
         with SqlServer(
             server=config.SQLSERVER,
             db=config.DATABASE,
             table=DEVICE_TABLE
         ) as site_sql:
             output = site_sql.read(
-                field='id',
-                value=body['device_id']
+                field='site',
+                value=self.site_id
             )
 
-        response = {
-            "device_id": output[0][0],
-            "hostname": output[0][1],
-            "site": output[0][2],
-            "vendor": output[0][3],
-            "type": output[0][4],
-            "auth_type": output[0][5],
-            "username": output[0][6],
-            "secret": output[0][7],
-            "salt": output[0][8],
-            "token": output[0][9],
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": ("Site ID is incorrect, "
+                          "or there are no devices in the site")
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+        # Otherwise, build the response
+        else:
+            self.response = []
+            for record in output:
+                entry = {
+                    "device_id": record[0],
+                    "hostname": record[1],
+                    "site": record[2],
+                    "vendor": record[3],
+                    "type": record[4],
+                    "auth_type": record[5],
+                    "username": record[6],
+                    "secret": record[7],
+                    "salt": record[8],
+                    "token": record[9],
+                }
+                self.response.append(entry)
+            self.code = http_codes.HTTP_OK
+
+    def post(self):
+        '''
+        Handle a POST request to the /sites/:site_id endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
+
+        # If there are fields missing, return an error
+        if ('hostname' not in self.body or
+                'vendor' not in self.body or
+                'auth_type' not in self.body or
+                'type' not in self.body):
+            self.response = {
+                "status": "error",
+                "error": "Bad parameters"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+            return
+
+        # Confirm the site exists
+        if not self.site_exists(self.site_id):
+            self.response = {
+                "status": "error",
+                "error": "Site ID is incorrect"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+            return
+
+        # Generate a UUID
+        device_id = uuid.uuid4()
+
+        # Build a dictionary of fields
+        fields = {
+            'id': device_id,
+            'name': self.body['hostname'],
+            'site': self.site_id,
+            'vendor': self.body['vendor'],
+            'type': self.body['type'],
+            'auth_type': self.body['auth_type'],
         }
-        code = http_codes.HTTP_CREATED
 
-    return response, code
+        # Handle auth_type
+        if self.body['auth_type'] == 'secret':
+            fields['secret'] = self.body['secret']
+            fields['username'] = self.body['username']
+            fields['salt'] = self.body['salt']
+        elif self.body['auth_type'] == 'token':
+            fields['token'] = self.body['token']
+        else:
+            self.response = {
+                "status": "error",
+                "error": "Wrong auth_type"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+            return
 
+        # Connect to the database and add a new device record
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=DEVICE_TABLE
+        ) as site_sql:
+            output = site_sql.add(
+                fields=fields,
+            )
 
-def delete_site_devices(site_id, body):
-    '''
-    Handle a DELETE request to the /sites/:site_id endpoint
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    Parameters:
-        site_id : str
-            The UUID of the site
-        body : json
-            The body of the request
+        # Otherwise, return the new device
+        else:
+            self.response = {
+                "device_id": str(device_id),
+                "hostname": self.body['hostname'],
+                "site": self.site_id,
+                "vendor": self.body['vendor'],
+                "type": self.body['type'],
+                "auth_type": self.body['auth_type'],
+                "username": self.body['username'],
+                "secret": self.body['secret'],
+                "salt": self.body['salt'],
+                "token": self.body['token']
+            }
+            self.code = http_codes.HTTP_CREATED
 
-    Raises:
-        None
+    def patch(self):
+        '''
+        Handle a PATCH request to the /sites/:site_id endpoint
 
-    Returns:
-        response : str
-            An empty string, or JSON error
-        code : int
-            The HTTP response code
-    '''
+        Parameters:
+            None
 
-    # If there are fields missing, return an error
-    if 'device_id' not in body:
-        response = {
-            "status": "error",
-            "error": "Bad parameters"
+        Raises:
+            None
+
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
+
+        # If there are fields missing, return an error
+        if 'device_id' not in self.body:
+            self.response = {
+                "status": "error",
+                "error": "Bad parameters"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+            return
+
+        # Check if the site exists
+        if not self.site_exists(self.site_id):
+            self.response = {
+                "status": "error",
+                "error": "Site ID is incorrect"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
+
+            return
+
+        # Build a dictionary of fields
+        #   Only include fields that are in the body
+        fields = {
+            'id': self.body['device_id'],
+            'site': self.site_id,
         }
-        code = http_codes.HTTP_BADREQUEST
 
-        return response, code
+        if 'hostname' in self.body:
+            fields['name'] = self.body['hostname']
 
-    # Check if the site exists
-    if not site_exists(site_id):
-        response = {
-            "status": "error",
-            "error": "Site ID is incorrect"
-        }
-        code = http_codes.HTTP_BADREQUEST
+        if 'vendor' in self.body:
+            fields['vendor'] = self.body['vendor']
 
-        return response, code
+        if 'type' in self.body:
+            fields['type'] = self.body['type']
 
-    # Delete the device in the site
-    # Send the fields to the database
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=DEVICE_TABLE
-    ) as site_sql:
-        output = site_sql.delete(
-            field='id',
-            value=body['device_id']
-        )
+        if 'auth_type' in self.body:
+            fields['auth_type'] = self.body['auth_type']
 
-    # If there was an error, return it
-    if not output:
-        response = {
-            "status": "error",
-            "error": "SQL error"
-        }
-        code = http_codes.HTTP_BADREQUEST
+        if 'username' in self.body:
+            fields['username'] = self.body['username']
 
-    # Otherwise, return an empty string
-    else:
-        response = ''
-        code = http_codes.HTTP_NOCONTENT
+        if 'secret' in self.body:
+            fields['secret'] = self.body['secret']
 
-    return response, code
+        if 'salt' in self.body:
+            fields['salt'] = self.body['salt']
 
+        if 'token' in self.body:
+            fields['token'] = self.body['token']
 
-def site_exists(site_id):
-    '''
-    Check if a site exists
+        # Send the fields to the database
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=DEVICE_TABLE
+        ) as site_sql:
+            output = site_sql.update(
+                field='id',
+                value=self.body['device_id'],
+                body=fields
+            )
 
-    Parameters:
-        site_id : str
-            The UUID of the site
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    Raises:
-        None
+        # Otherwise, return the updated device
+        else:
+            # Read the device from the database
+            with SqlServer(
+                server=config.SQLSERVER,
+                db=config.DATABASE,
+                table=DEVICE_TABLE
+            ) as site_sql:
+                output = site_sql.read(
+                    field='id',
+                    value=self.body['device_id']
+                )
 
-    Returns:
-        response : bool
-            True if the site exists, False otherwise
-    '''
+            self.response = {
+                "device_id": output[0][0],
+                "hostname": output[0][1],
+                "site": output[0][2],
+                "vendor": output[0][3],
+                "type": output[0][4],
+                "auth_type": output[0][5],
+                "username": output[0][6],
+                "secret": output[0][7],
+                "salt": output[0][8],
+                "token": output[0][9],
+            }
+            self.code = http_codes.HTTP_CREATED
 
-    # Check if the site exists
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=SITE_TABLE
-    ) as site_sql:
-        output = site_sql.read(
-            field='id',
-            value=site_id
-        )
+    def delete(self):
+        '''
+        Handle a DELETE request to the /sites/:site_id endpoint
 
-    # If there was an error (no site), return it
-    if not output:
-        return False
+        Parameters:
+            None
 
-    return True
+        Raises:
+            None
 
+        Returns:
+            response : JSON
+                The JSON response with the requested information or error
+                For a POST, this echoes back the request body
+            code : int
+                The HTTP response code
+        '''
 
-def device_exists(site_id, device_id, hostname):
-    '''
-    Check if a device exists by id and hostname, and is in the right site
+        # If there are fields missing, return an error
+        if 'device_id' not in self.body:
+            self.response = {
+                "status": "error",
+                "error": "Bad parameters"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    Parameters:
-        site_id : str
-            The UUID of the site
-        device_id : str
-            The UUID of the device
+            return
 
-    Raises:
-        None
+        # Check if the site exists
+        if not self.site_exists(self.site_id):
+            self.response = {
+                "status": "error",
+                "error": "Site ID is incorrect"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    Returns:
-        response : bool
-            True if the device does not exist, False otherwise
-    '''
+            return
 
-    # Check if the device exists
-    with SqlServer(
-        server=config.SQLSERVER,
-        db=config.DATABASE,
-        table=DEVICE_TABLE
-    ) as site_sql:
-        output = site_sql.read(
-            field='id',
-            value=device_id
-        )
+        # Delete the device in the site
+        # Send the fields to the database
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=DEVICE_TABLE
+        ) as site_sql:
+            output = site_sql.delete(
+                field='id',
+                value=self.body['device_id']
+            )
 
-    # If there was an error (no device), return it
-    if not output:
-        return False
+        # If there was an error, return it
+        if not output:
+            self.response = {
+                "status": "error",
+                "error": "SQL error"
+            }
+            self.code = http_codes.HTTP_BADREQUEST
 
-    # If the site ID doesn't match, return False
-    if output[0]['site'] != site_id:
-        return False
+        # Otherwise, return an empty string
+        else:
+            self.response = ''
+            self.code = http_codes.HTTP_NOCONTENT
 
-    # If the hostname already exists, return False
-    if output[0]['hostname'] == hostname:
-        return False
+    def site_exists(site_id):
+        '''
+        Check if a site exists
 
-    return True
+        Parameters:
+            site_id : str
+                The UUID of the site
+
+        Raises:
+            None
+
+        Returns:
+            response : bool
+                True if the site exists, False otherwise
+        '''
+
+        # Check if the site exists
+        with SqlServer(
+            server=config.SQLSERVER,
+            db=config.DATABASE,
+            table=SITE_TABLE
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=site_id
+            )
+
+        # If there was an error (no site), return it
+        if not output:
+            return False
+
+        return True
