@@ -2,8 +2,8 @@
 The Web front end of the API system
 
 Modules:
-    3rd Party: Flask, json
-    Internal: endpoints, config, basic_auth
+    3rd Party: Flask, json, traceback
+    Internal: endpoints, config, basic_auth, sql
 
 Classes:
 
@@ -61,7 +61,7 @@ Misc Variables:
         The status of the API; Set to 'up' for now
 
 Author:
-    Luke Robertson - April 2023
+    Luke Robertson - May 2023
 """
 
 from flask import Flask, request
@@ -77,6 +77,7 @@ import endpoints.vlans as vlans
 import endpoints.mac as mac
 import endpoints.routing as routing
 import endpoints.ospf as ospf
+import endpoints.api as api
 
 import security.basic_auth as basic_auth
 
@@ -107,31 +108,15 @@ def about_endpoint():
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
-
-    # Check if this request is authenticated
-    if basic_auth.api_auth(request.headers.get('authorization')):
-        response = {
-            "version": config.VERSION,
-            "status": config.STATUS
-        }
-        code = http_codes.HTTP_OK
-
-    else:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
+    with api.ApiCall(request) as about:
+        if about.code == 0:
+            about.response = {
+                "version": config.VERSION,
+                "status": config.STATUS
+            }
+            about.code = http_codes.HTTP_OK
+        code = about.code
+        response = about.response
 
     # Return the response as JSON, as well as the error code
     return json.dumps(response), code
@@ -161,6 +146,22 @@ def sites_endpoint():
             The HTTP response code
     '''
 
+    with sites.Sites(request) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            elif request.method == 'POST':
+                endpoint.post()
+            elif request.method == 'PATCH':
+                endpoint.patch()
+            elif request.method == 'DELETE':
+                endpoint.delete()
+
+        code = endpoint.code
+        response = endpoint.response
+
+    return json.dumps(response), code
+
     # Check if the Authorization header is present
     if request.headers.get('Authorization') is None:
         # If not, return a 401
@@ -183,23 +184,23 @@ def sites_endpoint():
 
     # Handle a GET request
     if request.method == 'GET':
-        response = sites.get_sites()
+        response = endpoint.get_sites()
 
     # Handle a POST (create a new site)
     if request.method == 'POST':
-        response = sites.post_sites(
+        response = endpoint.post_sites(
             body=request.json
         )
 
     # Handle a PATCH (update a site)
     if request.method == 'PATCH':
-        response = sites.patch_sites(
+        response = endpoint.patch_sites(
             body=request.json
         )
 
     # Handle a DELETE (remove a site)
     if request.method == 'DELETE':
-        response = sites.delete_sites(
+        response = endpoint.delete_sites(
             body=request.json
         )
 
@@ -236,79 +237,21 @@ def site_devices_endpoint(site_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with sites.SiteDevices(request, site_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            elif request.method == 'POST':
+                endpoint.post()
+            elif request.method == 'PATCH':
+                endpoint.patch()
+            elif request.method == 'DELETE':
+                endpoint.delete()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    vendor = False
-    dev_type = False
-
-    # Check for the 'vendor' parameter
-    if 'vendor' in args:
-        vendor = args.getlist('vendor')
-
-        # There can only be one vendor
-        if len(vendor) != 1:
-            response = {
-                "status": "error",
-                "error": "Bad JSON"
-            }
-            code = http_codes.HTTP_BADREQUEST
-            return json.dumps(response), code
-
-    # Check for the 'type' parameter
-    if 'type' in args:
-        dev_type = args.getlist('type')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = sites.get_site_devices(
-            site_id=site_id,
-            vendor=vendor,
-            dev_type=dev_type
-        )
-
-    # Handle a POST
-    if request.method == 'POST':
-        response = sites.post_site_devices(
-            site_id=site_id,
-            body=request.json
-        )
-
-    # Handle a PATCH
-    if request.method == 'PATCH':
-        response = sites.patch_site_devices(
-            site_id=site_id,
-            body=request.json
-        )
-
-    # Handle a DELETE
-    if request.method == 'DELETE':
-        response = sites.delete_site_devices(
-            site_id=site_id,
-            body=request.json
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices
