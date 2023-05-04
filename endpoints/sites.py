@@ -336,27 +336,6 @@ class SiteDevices(api.ApiCall):
         # Set the site_id
         self.site_id = site_id
 
-        # Extract parameters from the request
-        self.vendor = False
-        self.dev_type = False
-
-        # Check for the 'vendor' parameter
-        if 'vendor' in self.args:
-            vendor = self.args.getlist('vendor')
-
-            # There can only be one vendor
-            if len(vendor) != 1:
-                response = {
-                    "status": "error",
-                    "error": "Bad JSON"
-                }
-                code = http_codes.HTTP_BADREQUEST
-                return response, code
-
-        # Check for the 'type' parameter
-        if 'type' in self.args:
-            self.dev_type = self.args.getlist('type')
-
     def get(self):
         '''
         Handle a GET request to the /sites/:site_id endpoint
@@ -709,7 +688,7 @@ class SiteDevices(api.ApiCall):
             self.response = ''
             self.code = http_codes.HTTP_NOCONTENT
 
-    def site_exists(site_id):
+    def site_exists(self, site_id):
         '''
         Check if a site exists
 
