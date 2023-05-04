@@ -100,6 +100,32 @@ class ApiCall:
         else:
             self.body = None
 
+        # Extract parameters from the request
+        self.vendor = False
+        self.dev_type = False
+        self.filter = False
+
+        # Check for the 'vendor' parameter
+        if 'vendor' in self.args:
+            self.vendor = self.args.getlist('vendor')
+
+            # There can only be one vendor
+            if len(self.vendor) != 1:
+                self.response = {
+                    "status": "error",
+                    "error": "Bad JSON"
+                }
+                self.code = http_codes.HTTP_BADREQUEST
+                return
+
+        # Check for the 'type' parameter
+        if 'type' in self.args:
+            self.dev_type = self.args.getlist('type')
+
+        # Check for the 'filter' parameter
+        if 'filter' in self.args:
+            self.filter = self.args.getlist('filter')
+
     def __enter__(self):
         """
         Called when the 'with' statement is used
