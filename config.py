@@ -1,8 +1,10 @@
 """
 General configuration for the API
+Loads configuration from a YAML file into a dictionary
 
 Modules:
-    None
+    3rd party: yaml, sys
+    internal: None
 
 Classes:
 
@@ -18,51 +20,29 @@ Exceptions:
 
 Misc Variables:
 
-    SQLSERVER : str
-        The SQL server
-    DATABASE : str
-        The SQL database name
-    LOG_TABLE : str
-        The SQL table name
-
-    WEB_PORT : int
-        The port to run the API on
-    DEBUG : bool
-        Whether to run in debug mode
-    HOST_IP : str
-        The IP to run the API on
-
-    LDAP_SERVER : str
-        The LDAP server
-    LDAP_PORT : int
-        The LDAP port
-    LDAP_USER : str
-        The LDAP user
-
-    VERSION : str
-        The version of the API
-    STATUS : str
-        The status of the API
+    TBA
 
 Author:
     Luke Robertson - May 2023
 """
 
-# SQL configuration
-SQLSERVER = 'Server Name'
-DATABASE = 'Database Name'
-LOG_TABLE = 'Table Name'
+import yaml
+import sys
 
-# Flask Configuration
-WEB_PORT = 5000
-DEBUG = True
-HOST_IP = '0.0.0.0'
 
-# LDAP Configuration
-LDAP_SERVER = '10.10.10.1'
-LDAP_PORT = 389
-LDAP_USER = 'username@domain.com'
+# Open the YAML file, and store in the 'config' variable
+with open('config.yaml') as config:
+    try:
+        config = yaml.load(config, Loader=yaml.FullLoader)
+    except yaml.YAMLError as err:
+        print('Error parsing config file, exiting')
+        print('Check the YAML formatting at \
+            https://yaml-online-parser.appspot.com/')
+        print(err)
+        sys.exit()
 
-# API Information
-VERSION = 'beta'
-STATUS = 'up'
+# Update our dictionaries with the config
+WEB_SERVER = config['web_server']
+SQL_SERVER = config['sql_server']
+LDAP_SERVER = config['ldap_server']
+API = config['api']
