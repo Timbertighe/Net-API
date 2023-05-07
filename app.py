@@ -2,7 +2,7 @@
 The Web front end of the API system
 
 Modules:
-    3rd Party: Flask, json, traceback
+    3rd Party: Flask, json, traceback, flask_apscheduler
     Internal: endpoints, config, basic_auth, sql
 
 Classes:
@@ -66,6 +66,9 @@ Author:
 
 from flask import Flask, request
 import json
+from flask_apscheduler import APScheduler
+from datetime import datetime
+from datetime import timedelta
 
 import endpoints.http_codes as http_codes
 import endpoints.sites as sites
@@ -75,13 +78,20 @@ import endpoints.switching as switching
 import endpoints.routing as routing
 import endpoints.api as api
 
+import cron.schedule as schedule
+
 import security.basic_auth as basic_auth
 
 import config
 
 
-# Initialise the Flask class
+# The Flask class is used to create the web server
+# The APScheduler class is used to schedule tasks
+# The scheduler object is stored in config, for access later
 app = Flask(__name__)
+sched_obj = APScheduler()
+sched_obj.init_app(app)
+config.API['scheduler'] = sched_obj
 
 
 # /about
