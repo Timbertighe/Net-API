@@ -31,7 +31,7 @@ To Do:
     PATCH device should only update the fields provided
 
 Author:
-    Luke Robertson - April 2023
+    Luke Robertson - May 2023
 """
 
 import endpoints.http_codes as http_codes
@@ -103,8 +103,8 @@ class Sites(api.ApiCall):
 
         # Connect to the database and get a list of all sites
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             # Empty field and value mean 'get all records'
@@ -148,8 +148,8 @@ class Sites(api.ApiCall):
 
         # Check if the site name already exists
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             output = site_sql.read(
@@ -177,8 +177,8 @@ class Sites(api.ApiCall):
 
         # Connect to the database and add a new site record
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             output = site_sql.add(
@@ -225,8 +225,8 @@ class Sites(api.ApiCall):
 
         # Connect to the database and update the site record
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             output = site_sql.update(
@@ -270,8 +270,8 @@ class Sites(api.ApiCall):
 
         # Connect to the database and delete the site record
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             output = site_sql.delete(
@@ -369,8 +369,8 @@ class SiteDevices(api.ApiCall):
 
         # Connect to the database and get a list devices in a site
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=DEVICE_TABLE
         ) as site_sql:
             output = site_sql.read(
@@ -477,8 +477,8 @@ class SiteDevices(api.ApiCall):
 
         # Connect to the database and add a new device record
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=DEVICE_TABLE
         ) as site_sql:
             output = site_sql.add(
@@ -580,8 +580,8 @@ class SiteDevices(api.ApiCall):
 
         # Send the fields to the database
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=DEVICE_TABLE
         ) as site_sql:
             output = site_sql.update(
@@ -602,8 +602,8 @@ class SiteDevices(api.ApiCall):
         else:
             # Read the device from the database
             with SqlServer(
-                server=config.SQLSERVER,
-                db=config.DATABASE,
+                server=config.SQL_SERVER['db_server'],
+                db=config.SQL_SERVER['db_name'],
                 table=DEVICE_TABLE
             ) as site_sql:
                 output = site_sql.read(
@@ -666,8 +666,8 @@ class SiteDevices(api.ApiCall):
         # Delete the device in the site
         # Send the fields to the database
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=DEVICE_TABLE
         ) as site_sql:
             output = site_sql.delete(
@@ -706,8 +706,8 @@ class SiteDevices(api.ApiCall):
 
         # Check if the site exists
         with SqlServer(
-            server=config.SQLSERVER,
-            db=config.DATABASE,
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
             table=SITE_TABLE
         ) as site_sql:
             output = site_sql.read(
