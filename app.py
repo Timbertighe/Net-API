@@ -107,8 +107,8 @@ def about_endpoint():
     with api.ApiCall(request) as about:
         if about.code == 0:
             about.response = {
-                "version": config.VERSION,
-                "status": config.STATUS
+                "version": config.API['version'],
+                "status": config.API['status']
             }
             about.code = http_codes.HTTP_OK
         code = about.code
@@ -571,7 +571,7 @@ def ospf_endpoint(device_id):
 # Start the Flask app
 if __name__ == '__main__':
     app.run(
-        debug=config.DEBUG,
-        host=config.HOST_IP,
-        port=config.WEB_PORT
+        debug=config.WEB_SERVER['flask_debug'],
+        host=config.WEB_SERVER['host_ip'],
+        port=config.WEB_SERVER['web_port']
     )
