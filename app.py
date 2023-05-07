@@ -70,13 +70,9 @@ import json
 import endpoints.http_codes as http_codes
 import endpoints.sites as sites
 import endpoints.devices as devices
-import endpoints.hardware as hardware
 import endpoints.interfaces as interfaces
-import endpoints.lldp as lldp
-import endpoints.vlans as vlans
-import endpoints.mac as mac
+import endpoints.switching as switching
 import endpoints.routing as routing
-import endpoints.ospf as ospf
 import endpoints.api as api
 
 import security.basic_auth as basic_auth
@@ -325,42 +321,15 @@ def dev_hardware_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with devices.Hardware(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-
-    # Check for the 'filter' parameter
-    filter = False
-    if 'filter' in args:
-        filter = args.getlist('filter')
-
-    # Handle a GET request
-    response = hardware.get_hardware(
-        device_id=device_id,
-        query=filter
-    )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/interfaces
@@ -397,73 +366,19 @@ def interfaces_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with interfaces.Interfaces(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            if request.method == 'PATCH':
+                endpoint.patch()
+            if request.method == 'POST':
+                endpoint.post()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    interface = False
-    summary = False
-
-    # Check for the 'interface' parameter
-    if 'interface' in args:
-        interface = args.getlist('interface')
-
-    # Check for the 'summary' parameter
-    if 'interface' in args:
-        summary = args.getlist('summary')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = interfaces.get_interfaces(
-            device_id=device_id,
-            interface=interface,
-            summary=summary
-        )
-
-    # Handle a PATCH request
-    if request.method == 'PATCH':
-        if not request.data:
-            body = False
-        else:
-            body = request.json
-
-        response = interfaces.post_interfaces_op(
-            device_id=device_id,
-            body=body
-        )
-
-    # Handle a POST request
-    if request.method == 'POST':
-        if not request.data:
-            body = False
-        else:
-            body = request.json
-
-        response = interfaces.post_interfaces_op(
-            device_id=device_id,
-            body=body
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/lldp
@@ -491,43 +406,15 @@ def lldp_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with switching.Lldp(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    interface = False
-
-    # Check for the 'type' parameter
-    if 'interface' in args:
-        interface = args.getlist('interface')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = lldp.get_lldp(
-            device_id=device_id,
-            interface=interface
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/vlans
@@ -556,50 +443,17 @@ def vlans_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with switching.Vlans(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            if request.method == 'PATCH':
+                endpoint.patch()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    vlan = False
-
-    # Check for the 'type' parameter
-    if 'vlan' in args:
-        vlan = args.getlist('vlan')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = vlans.get_vlans(
-            device_id=device_id,
-            vlan=vlan
-        )
-
-    # Handle a PATCH
-    if request.method == 'PATCH':
-        response = vlans.patch_vlans(
-            device_id=device_id,
-            body=request.json
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/mac_table
@@ -627,49 +481,15 @@ def mac_table_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with switching.Mac(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    interface = False
-    mac_addr = False
-
-    # Check for the 'interface' parameter
-    if 'interface' in args:
-        interface = args.getlist('interface')
-
-    # Check for the 'mac' parameter
-    if 'mac' in args:
-        mac_addr = args.getlist('mac')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = mac.get_mac(
-            device_id=device_id,
-            interface=interface,
-            mac=mac_addr
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/routing_table
@@ -697,43 +517,15 @@ def routing_table_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with routing.Routing_Table(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Get parameters from the request
-    args = request.args
-    route = False
-
-    # Check for the 'interface' parameter
-    if 'route' in args:
-        route = args.getlist('route')
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = routing.get_routes(
-            device_id=device_id,
-            route=route,
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # /devices/:device_id/routing_table
@@ -763,46 +555,17 @@ def ospf_endpoint(device_id):
             The HTTP response code
     '''
 
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+    with routing.Ospf(request, device_id) as endpoint:
+        if endpoint.code == 0:
+            if request.method == 'GET':
+                endpoint.get()
+            if request.method == 'POST':
+                endpoint.post()
 
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
+        code = endpoint.code
+        response = endpoint.response
 
-    # Handle a GET request
-    if request.method == 'GET':
-        response = ospf.get_ospf(
-            device_id=device_id,
-        )
-
-    # Handle a POST request
-    if request.method == 'POST':
-        if not request.data:
-            body = False
-        else:
-            body = request.json
-
-        response = ospf.post_ospf_op(
-            device_id=device_id,
-            body=body
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
+    return json.dumps(response), code
 
 
 # Start the Flask app
