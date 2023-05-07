@@ -68,7 +68,7 @@ def api_auth(authorization):
     username, password = authorization.split(':')
 
     # Get LDAP details
-    ldap_user, ldap_domain = config.LDAP_USER.split('@')
+    ldap_user, ldap_domain = config.LDAP_SERVER['ldap_user'].split('@')
 
     # Check that the user is the one specified in the config
     if username != ldap_user:
@@ -76,8 +76,8 @@ def api_auth(authorization):
 
     # Authenticate the user against LDAP
     with ldap_ad.LdapUser(
-        server=config.LDAP_SERVER,
-        port=config.LDAP_PORT,
+        server=config.LDAP_SERVER['ldap_server'],
+        port=config.LDAP_SERVER['ldap_port'],
         domain=ldap_domain
     ) as ldap_account:
         return ldap_account.authenticate(username, password)
