@@ -3,6 +3,11 @@ A network API front end, to manage distributed devices and services
 
 Still in development, see changelog in the Wiki for status
 
+## Configuration
+    Completed in conifg.yaml
+    See the wiki for details on how to use it
+    
+    
 ## API Authentication
     The API uses basic authentication.
     Each API call must have a base64 token in the Authorization header
