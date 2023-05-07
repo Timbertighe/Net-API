@@ -71,9 +71,9 @@ class LogEntries:
         None
         """
 
-        self.server = config.SQLSERVER
-        self.database = config.DATABASE
-        self.table = config.LOG_TABLE
+        self.server = config.SQL_SERVER['db_server']
+        self.database = config.SQL_SERVER['db_name']
+        self.table = config.SQL_SERVER['log_table']
 
     def __enter__(self):
         """
