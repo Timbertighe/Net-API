@@ -1,0 +1,27 @@
+---
+# Note: indendentation is important
+# Verify formatting here: https://yaml-online-parser.appspot.com/
+#   Or here: https://www.yamllint.com/
+
+# Web server (Flask) Configuration
+web_server:
+  web_port: 5000
+  flask_debug: True
+  host_ip: '0.0.0.0'
+
+# SQL Server configuration
+sql_server:
+  db_server: 'database_server'
+  db_name: 'database_name'
+  log_table: 'Logs'
+
+# LDAP Configuration
+ldap_server:
+  ldap_server: '10.10.10.10'
+  ldap_port: 389
+  ldap_user: 'myaccount@mydomain.com'
+
+# API Information
+api:
+  version: 'beta'
+  status: 'up'
