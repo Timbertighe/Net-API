@@ -3,22 +3,18 @@ Return a list of all devices in the environment
 
 Modules:
     3rd Party: None
-    Internal: http_codes, sql, api, config
+    Internal: http_codes, api
 
 Classes:
 
-    None
+    Devices
+        Handle a GET request to the /devices endpoint
+    Hardware
+        Represents the /devices/:device_id/hardware endpoint
 
 Functions
 
-    get_devices
-        Get a list of devices in a site
-    get_device
-        Get a list of devices
-    patch_device
-        Update the config on a device
-    post_device
-        Run an operational command on a device
+    None
 
 Exceptions:
 
@@ -26,7 +22,8 @@ Exceptions:
 
 Misc Variables:
 
-    None
+    SITE_TABLE : str
+        The name of the table in the database that stores site information
 
 Author:
     Luke Robertson - May 2023
@@ -49,6 +46,8 @@ class Devices(api.ApiCall):
     ----------
     request : flask.request
         The request object from Flask
+    device_id : str
+        The device ID to query
 
     Methods
     -------
@@ -67,6 +66,8 @@ class Devices(api.ApiCall):
         Parameters:
             request : flask.request
                 The request object from Flask
+            device_id : str
+                The device ID to query
 
         Raises:
             None
@@ -353,6 +354,103 @@ class Devices(api.ApiCall):
                     }
                 ]
             }
+        }
+
+        self.code = http_codes.HTTP_OK
+
+
+class Hardware(api.ApiCall):
+    '''
+    Create an object to represent the /devices/:device_id/hardware endpoint
+
+    Supports being instantiated with the 'with' statement
+
+    Attributes
+    ----------
+    request : flask.request
+        The request object from Flask
+    device_id : str
+        The device ID to query
+
+    Methods
+    -------
+    get()
+        Handle a GET request to the /devices/:device_id/hardware endpoint
+    '''
+
+    def __init__(self, request, device_id):
+        '''
+        Class constructor
+
+        Parameters:
+            request : flask.request
+                The request object from Flask
+            device_id : str
+                The device ID to query
+
+        Raises:
+            None
+
+        Returns:
+            None
+        '''
+
+        # Call the superclass constructor
+        super().__init__(request)
+
+        # Store the device ID
+        self.device_id = device_id
+
+    def get(self):
+        '''
+        Handle a GET request to the /devices/:device_id/hardware endpoint
+
+        Parameters:
+            None
+
+        Raises:
+            None
+
+        Returns:
+            None
+        '''
+
+        # Check if we're filtering in any way
+        if self.filter:
+            pass
+
+        # Build the response
+        self.response = {
+            "cpu": {
+                "used": 10,
+                "idle": 90,
+                "1_min": 5,
+                "5_min": 1,
+                "15_min": 1
+            },
+            "memory": {
+                "total": 1024,
+                "used": 123
+            },
+            "disk": [
+                {
+                    "disk": "/edv/da0s1a",
+                    "size": 597,
+                    "used": 424
+                }
+            ],
+            "temperature": {
+                "cpu": 69,
+                "chassis": 42
+            },
+            "fan": [
+                {
+                    "fan": "SRX345 Chassis fan 0",
+                    "status": "ok",
+                    "rpm": 3840,
+                    "detail": "spinning at normal speed"
+                }
+            ]
         }
 
         self.code = http_codes.HTTP_OK
