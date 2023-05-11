@@ -14,6 +14,8 @@ sql_server:
   db_server: 'database_server'
   db_name: 'database_name'
   log_table: 'Logs'
+  site_table: 'sites'
+  device_table: 'devices'  
 
 # LDAP Configuration
 ldap_server:
@@ -25,3 +27,11 @@ ldap_server:
 api:
   version: 'beta'
   status: 'up'
+
+# Register RPC plugins
+plugins:
+  junos:
+    vendor: 'juniper'
+    host: 'localhost'
+    port: 8000
+    description: 'Juniper Junos'
