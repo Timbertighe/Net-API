@@ -23,3 +23,9 @@ Still in development, see changelog in the Wiki for status
     The master password is stored in the 'api_master_pw' environment variable.
     Passwords should be encrypted to secrets before they are added to the device database.
 
+## Plugins
+    Plugins are used to connect to specific end devices and services. At least one plugin is needed to make the API useful
+    These run as RPC servers, and receive requests from the API app, which is the RPC client
+    Plugins are available in separate repos.
+    More information is available in the Wiki
+    
