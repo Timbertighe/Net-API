@@ -2,7 +2,7 @@
 The Web front end of the API system
 
 Modules:
-    3rd Party: Flask, json, traceback, flask_apscheduler
+    3rd Party: Flask, json, traceback, flask_apscheduler, xmlrpc.client
     Internal: endpoints, config, basic_auth, sql
 
 Classes:
@@ -67,9 +67,6 @@ Author:
 from flask import Flask, request
 import json
 from flask_apscheduler import APScheduler
-from datetime import datetime
-from datetime import timedelta
-
 import endpoints.http_codes as http_codes
 import endpoints.sites as sites
 import endpoints.devices as devices
@@ -78,11 +75,41 @@ import endpoints.switching as switching
 import endpoints.routing as routing
 import endpoints.api as api
 
-import cron.schedule as schedule
-
 import security.basic_auth as basic_auth
 
+import plugins.plugin as plugin
+
 import config
+
+
+def load_plugins():
+    """
+    Load plugins from the config file
+    Add them to the config.PLUGINS['loaded'] list
+
+    Parameters
+    ----------
+    None
+
+    Raises
+    ------
+    None
+
+    Returns
+    -------
+    None
+    """
+
+    loaded = []
+    for entry in config.PLUGINS:
+        new_plugin = plugin.Plugin(
+            vendor=config.PLUGINS[entry]['vendor'],
+            rpc_host=config.PLUGINS[entry]['host'],
+            port=config.PLUGINS[entry]['port'],
+            description=config.PLUGINS[entry]['description']
+        )
+        loaded.append(new_plugin)
+    config.PLUGINS['loaded'] = loaded
 
 
 # The Flask class is used to create the web server
@@ -92,6 +119,9 @@ app = Flask(__name__)
 sched_obj = APScheduler()
 sched_obj.init_app(app)
 config.API['scheduler'] = sched_obj
+
+# Load plugins
+load_plugins()
 
 
 # /about
@@ -307,6 +337,8 @@ def devices_endpoint(device_id, **kwargs):
         code = endpoint.code
         response = endpoint.response
 
+    # Return the response (already JSON), as well as the status code
+    return response, code
     return json.dumps(response), code
 
 
