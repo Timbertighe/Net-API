@@ -3,7 +3,7 @@ Return a list of all devices in the environment
 
 Modules:
     3rd Party: None
-    Internal: http_codes, api
+    Internal: http_codes, api, config
 
 Classes:
 
@@ -31,6 +31,8 @@ Author:
 
 import endpoints.http_codes as http_codes
 import endpoints.api as api
+import config
+from sql.sql import SqlServer
 
 
 SITE_TABLE = 'sites'
@@ -82,6 +84,18 @@ class Devices(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
     def get(self):
         '''
         Handle a GET request to the /devices/:device_id endpoint
@@ -106,69 +120,12 @@ class Devices(api.ApiCall):
         if self.filter:
             pass
 
-        # Build the response
-        self.response = {
-            "device_id": "acde070d-8c4c-4f0d-9d8a-162843c10444",
-            "hostname": "hq-sw01",
-            "vendor": "juniper",
-            "type": "switch",
-            "serial": "CWxxxxxxxxxx",
-            "uptime": 1502870,
-            "licenses": [
-                {
-                    "lic_id": " JUNOSxxxxxxxxx",
-                    "name": "wf_key_websense_ewf",
-                    "expiry": "2023-03-20 11:00:00 EST"
-                }
-            ],
-            "radius-servers": [
-                {
-                    "server": "10.1.1.1",
-                    "port": 1812,
-                    "acc_port": 1813,
-                    "timeout": 5,
-                    "retry": 3,
-                    "source": "10.10.10.10"
-                }
-            ],
-            "syslog-servers": [
-                {
-                    "server": "10.1.1.1",
-                    "facilities": "any",
-                    "level": "notice",
-                    "source": "10.10.10.10",
-                    "prefix": "hq-sw01"
-                }
-            ],
-            "ntp-servers": [
-                {
-                    "server": "10.1.1.1",
-                    "prefer": False
-                }
-            ],
-            "dns-servers": [
-                {
-                    "server": "10.1.1.1",
-                    "source": False,
-                    "domain": "mydomain.com"
-                }
-            ],
-            "snmp": {
-                "name": "hq-sw01",
-                "contact": "John Smith",
-                "description": "first floor switch",
-                "communities": [
-                    {
-                        "community": "SNMPCommunity",
-                        "auth": "RO",
-                        "clients": [
-                            "10.1.1.1",
-                            "10.1.1.2"
-                        ]
-                    }
-                ]
-            }
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+                # Get the device information from the plugin
+                self.response = plugin.device(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
 
