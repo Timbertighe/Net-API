@@ -20,7 +20,14 @@ Exceptions:
 
 Misc Variables:
 
-    TBA
+    WEB_SERVER:
+        Dictionary containing web server configuration
+    SQL_SERVER:
+        Dictionary containing SQL server configuration
+    LDAP_SERVER:
+        Dictionary containing LDAP server configuration
+    API:
+        Dictionary containing API configuration
 
 Author:
     Luke Robertson - May 2023
@@ -46,3 +53,4 @@ WEB_SERVER = config['web_server']
 SQL_SERVER = config['sql_server']
 LDAP_SERVER = config['ldap_server']
 API = config['api']
+PLUGINS = config['plugins']
