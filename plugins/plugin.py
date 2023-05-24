@@ -153,7 +153,7 @@ class Plugin:
 
         return device_json
 
-    def hardware(self):
+    def hardware(self, device_id):
         """
         Manages hardware information, such as CPU, RAM, etc.
 
@@ -171,8 +171,15 @@ class Plugin:
             A dictionary containing hardware information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            hardware_json = self.server.hardware()
+            hardware_json = self.server.hardware(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -192,7 +199,7 @@ class Plugin:
 
         return hardware_json
 
-    def interfaces(self):
+    def interfaces(self, device_id):
         """
         Manages interface information, such as MAC address, IP address, etc.
 
@@ -210,8 +217,15 @@ class Plugin:
             A dictionary containing interface information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            interface_json = self.server.interfaces()
+            interface_json = self.server.interfaces(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -231,7 +245,7 @@ class Plugin:
 
         return interface_json
 
-    def lldp(self):
+    def lldp(self, device_id):
         """
         Manages lldp information, such as neighbors, etc.
 
@@ -249,8 +263,15 @@ class Plugin:
             A dictionary containing lldp information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            lldp_json = self.server.lldp()
+            lldp_json = self.server.lldp(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -267,7 +288,7 @@ class Plugin:
 
         return lldp_json
 
-    def mac(self):
+    def mac(self, device_id):
         """
         Manages MAC table information, such as MAC address, VLAN, etc.
 
@@ -285,8 +306,15 @@ class Plugin:
             A dictionary containing MAC table information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            mac_json = self.server.mac()
+            mac_json = self.server.mac(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -303,7 +331,7 @@ class Plugin:
 
         return mac_json
 
-    def ospf(self):
+    def ospf(self, device_id):
         """
         Manages OSPF information, such as neighbors, etc.
 
@@ -321,8 +349,15 @@ class Plugin:
             A dictionary containing OSPF information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            ospf_json = self.server.ospf()
+            ospf_json = self.server.ospf(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -339,7 +374,7 @@ class Plugin:
 
         return ospf_json
 
-    def routing(self):
+    def routing(self, device_id):
         """
         Manages routing table information, such as routes, etc.
 
@@ -357,8 +392,15 @@ class Plugin:
             A dictionary containing routing table information
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            routing_json = self.server.routing()
+            routing_json = self.server.routing(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -375,7 +417,7 @@ class Plugin:
 
         return routing_json
 
-    def vlans(self):
+    def vlans(self, device_id):
         """
         Manages VLAN information, such as VLAN ID, name, etc.
 
@@ -392,8 +434,15 @@ class Plugin:
         TBA
         """
 
+        # Get the username and password for the device
+        host, username, password = self.authenticate(device_id=device_id)
+
         try:
-            vlan_json = self.server.vlan()
+            vlan_json = self.server.vlans(
+                host,
+                username,
+                password
+            )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
