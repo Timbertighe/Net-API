@@ -64,7 +64,7 @@ Author:
     Luke Robertson - May 2023
 """
 
-from flask import Flask, request
+from flask import Flask, request, Response
 import json
 from flask_apscheduler import APScheduler
 import endpoints.http_codes as http_codes
@@ -154,8 +154,12 @@ def about_endpoint():
         code = about.code
         response = about.response
 
-    # Return the response as JSON, as well as the error code
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        json.dumps(response),
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /sites
@@ -287,7 +291,12 @@ def site_devices_endpoint(site_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        json.dumps(response),
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id
@@ -337,9 +346,12 @@ def devices_endpoint(device_id, **kwargs):
         code = endpoint.code
         response = endpoint.response
 
-    # Return the response (already JSON), as well as the status code
-    return response, code
-    return json.dumps(response), code
+    # Return the response (already JSON), the Content-Type, http code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/hardware
@@ -371,7 +383,12 @@ def dev_hardware_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/interfaces
@@ -420,7 +437,12 @@ def interfaces_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/lldp
@@ -456,7 +478,12 @@ def lldp_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/vlans
@@ -495,7 +522,12 @@ def vlans_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/mac_table
@@ -531,7 +563,12 @@ def mac_table_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/routing_table
@@ -567,7 +604,12 @@ def routing_table_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # /devices/:device_id/routing_table
@@ -607,7 +649,12 @@ def ospf_endpoint(device_id):
         code = endpoint.code
         response = endpoint.response
 
-    return json.dumps(response), code
+    # Return the response as JSON, the Content-Type, as well as the error code
+    return Response(
+        response,
+        mimetype='application/json',
+        status=code
+    )
 
 
 # Start the Flask app
