@@ -3,7 +3,7 @@ Manage routing functions (eg, routing table, OSPF)
 
 Modules:
     3rd Party: None
-    Internal: http_codes, api
+    Internal: http_codes, api, config, sql
 
 Classes:
 
@@ -30,6 +30,8 @@ Author:
 
 import endpoints.http_codes as http_codes
 import endpoints.api as api
+import config
+from sql.sql import SqlServer
 
 
 class Routing_Table(api.ApiCall):
@@ -74,6 +76,18 @@ class Routing_Table(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
         # Check for the 'route' parameter
         self.route = False
         if 'route' in self.args:
@@ -97,23 +111,16 @@ class Routing_Table(api.ApiCall):
         if self.route:
             pass
 
-        # Build the response
-        self.response = {
-            "entry": [
-                {
-                    "route": " 10.1.1.0/24",
-                    "next-hop": [
-                        {
-                            "hop": "10.2.2.2",
-                            "protocol": "Static/5",
-                            "interface": "vlan.29",
-                            "metric": 0,
-                            "active": True
-                        }
-                    ]
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.routing(device_id=self.device_id)
+                break
+
+        self.code = http_codes.HTTP_OK
 
         self.code = http_codes.HTTP_OK
 
@@ -160,6 +167,18 @@ class Ospf(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
     def get(self):
         '''
         Handle a GET request to the /devices/:device_id/ospf endpoint
@@ -174,42 +193,14 @@ class Ospf(api.ApiCall):
             None
         '''
 
-        # Build the response
-        self.response = {
-            "id": "10.1.1.1",
-            "reference": "100g",
-            "areas": [
-                {
-                    "id": "0.0.0.10",
-                    "type": "Not Stub",
-                    "auth_type": "None",
-                    "neighbors": 2
-                }
-            ],
-            "neighbor": [
-                {
-                    "address": "172.1.1.1",
-                    "interface": "st0.41",
-                    "state": "Full",
-                    "id": "10.2.2.2",
-                    "area": "0.0.0.10"
-                }
-            ],
-            "interface": [
-                {
-                    "name": "irb.10",
-                    "state": "DRother",
-                    "area": "0.0.0.10",
-                    "neighbors": 0,
-                    "mtu": 9192,
-                    "cost": 8015,
-                    "type": "P2MP",
-                    "mask": "255.255.255.0",
-                    "Auth_type": "None",
-                    "passive": True
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.ospf(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
 

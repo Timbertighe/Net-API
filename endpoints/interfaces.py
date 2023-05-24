@@ -3,7 +3,7 @@ Interface information
 
 Modules:
     3rd Party: None
-    Internal: http_codes, api
+    Internal: http_codes, api, config, sql
 
 Classes:
 
@@ -28,6 +28,8 @@ Author:
 
 import endpoints.http_codes as http_codes
 import endpoints.api as api
+import config
+from sql.sql import SqlServer
 
 
 class Interfaces(api.ApiCall):
@@ -76,6 +78,18 @@ class Interfaces(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
         # Extract parameters from the request
         self.interface = False
         self.summary = False
@@ -110,44 +124,14 @@ class Interfaces(api.ApiCall):
         if self.summary:
             pass
 
-        # Build the response
-        self.response = {
-            "interfaces": [
-                {
-                    "name": "ge-0/0/0",
-                    "mac": "4c:6d:58:00:00:00",
-                    "description": "Workstations",
-                    "family": "",
-                    "address": "",
-                    "native_vlan": 1,
-                    "speed": 1000,
-                    "counters": {
-                        "bps_in": 550800,
-                        "bps_out": 682184,
-                        "bytes_in": 4755699005,
-                        "bytes_out": 629507153,
-                        "pps_in": 51088,
-                        "pps_out": 74936,
-                        "packets_in": 3979923,
-                        "packets_out": 2173825
-                    },
-                    "subinterfaces": [
-                        {
-                            "subinterface": "unit 0",
-                            "family": "ethernet",
-                            "address": "204",
-                            "description": "Workstation"
-                        }
-                    ],
-                    "poe": {
-                        "admin": True,
-                        "operational": True,
-                        "max": 15.4,
-                        "used": 11.8
-                    }
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.interfaces(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
 

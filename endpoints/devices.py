@@ -123,7 +123,9 @@ class Devices(api.ApiCall):
         # Find the correct plugin to use
         for plugin in config.PLUGINS['loaded']:
             if self.device_vendor == plugin.vendor:
+
                 # Get the device information from the plugin
+                #   This comes from the class in plugin.py
                 self.response = plugin.device(device_id=self.device_id)
                 break
 
@@ -358,6 +360,18 @@ class Hardware(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
     def get(self):
         '''
         Handle a GET request to the /devices/:device_id/hardware endpoint
@@ -376,38 +390,13 @@ class Hardware(api.ApiCall):
         if self.filter:
             pass
 
-        # Build the response
-        self.response = {
-            "cpu": {
-                "used": 10,
-                "idle": 90,
-                "1_min": 5,
-                "5_min": 1,
-                "15_min": 1
-            },
-            "memory": {
-                "total": 1024,
-                "used": 123
-            },
-            "disk": [
-                {
-                    "disk": "/edv/da0s1a",
-                    "size": 597,
-                    "used": 424
-                }
-            ],
-            "temperature": {
-                "cpu": 69,
-                "chassis": 42
-            },
-            "fan": [
-                {
-                    "fan": "SRX345 Chassis fan 0",
-                    "status": "ok",
-                    "rpm": 3840,
-                    "detail": "spinning at normal speed"
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.hardware(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK

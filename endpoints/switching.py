@@ -3,7 +3,7 @@ Switching information
 
 Modules:
     3rd Party: None
-    Internal: http_codes, api
+    Internal: http_codes, api, config, sql
 
 Classes:
 
@@ -32,6 +32,8 @@ Author:
 
 import endpoints.http_codes as http_codes
 import endpoints.api as api
+import config
+from sql.sql import SqlServer
 
 
 class Vlans(api.ApiCall):
@@ -78,6 +80,18 @@ class Vlans(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
         # Check for the 'vlan' parameter
         self.vlan = False
         if 'vlan' in self.args:
@@ -101,17 +115,14 @@ class Vlans(api.ApiCall):
         if self.vlan:
             pass
 
-        # Build the response
-        self.response = {
-            "vlans": [
-                {
-                    "id": 44,
-                    "name": "Internet",
-                    "description": " Internet access for the public",
-                    "irb": "irb.44"
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.vlans(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
 
@@ -186,6 +197,18 @@ class Mac(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
         # Check for the 'interface' parameter
         self.interface = False
         if 'interface' in self.args:
@@ -218,16 +241,14 @@ class Mac(api.ApiCall):
         if self.mac:
             pass
 
-        # Build the response
-        self.response = {
-            "entry": [
-                {
-                    "mac": "1c:7d:22:000:00:00",
-                    "vlan": "Workstations",
-                    "interface": "ge-0/0/5.0"
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.mac(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
 
@@ -274,6 +295,18 @@ class Lldp(api.ApiCall):
         # Store the device ID
         self.device_id = device_id
 
+        # Look up the device in the database
+        with SqlServer(
+            server=config.SQL_SERVER['db_server'],
+            db=config.SQL_SERVER['db_name'],
+            table=config.SQL_SERVER['device_table']
+        ) as site_sql:
+            output = site_sql.read(
+                field='id',
+                value=device_id
+            )[0]
+        self.device_vendor = output[3]
+
         # Check for the 'interface' parameter
         self.interface = False
         if 'interface' in self.args:
@@ -297,21 +330,13 @@ class Lldp(api.ApiCall):
         if self.interface:
             pass
 
-        # Build the response
-        self.response = {
-            "interfaces": [
-                {
-                    "name": "ge-0/0/0",
-                    "mac": "18:66:da:00:00:00",
-                    "system": "WAP-1",
-                    "port_name": "ETH0",
-                    "ip": "10.1.1.1",
-                    "vendor": "Mist Systems.",
-                    "description": "Mist Systems 802.11ax Access Point.",
-                    "model": "AP43-WW",
-                    "serial": "Axxxxxxxxxxxx"
-                }
-            ]
-        }
+        # Find the correct plugin to use
+        for plugin in config.PLUGINS['loaded']:
+            if self.device_vendor == plugin.vendor:
+
+                # Get the device information from the plugin
+                #   This comes from the class in plugin.py
+                self.response = plugin.lldp(device_id=self.device_id)
+                break
 
         self.code = http_codes.HTTP_OK
