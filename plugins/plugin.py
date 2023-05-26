@@ -4,7 +4,7 @@ Manage plugins for the Net-API
 NOTE: This only returns dummy data at the moment
 
 Modules:
-    External: xmlrpc.client, base64
+    External: xmlrpc.client, base64, json
     Internal: sql.sql, config, security.encryption
 
 Classes:
@@ -30,6 +30,7 @@ Author:
 # Imports
 import xmlrpc.client
 import base64
+import json
 
 from sql.sql import SqlServer
 from security.encryption import CryptoSecret
@@ -144,12 +145,13 @@ class Plugin:
 
             else:
                 device_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
 
             print(f"Problem connecting to the {self.vendor} plugin")
             print(e)
+            device_json = json.dumps(device_json)
 
         return device_json
 
@@ -190,12 +192,13 @@ class Plugin:
 
             else:
                 hardware_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
 
             print(f"Problem connecting to the {self.vendor} plugin")
             print(e)
+            hardware_json = json.dumps(hardware_json)
 
         return hardware_json
 
@@ -236,12 +239,13 @@ class Plugin:
 
             else:
                 interface_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
 
             print(f"Problem connecting to the {self.vendor} plugin")
             print(e)
+            interface_json = json.dumps(interface_json)
 
         return interface_json
 
@@ -282,9 +286,10 @@ class Plugin:
 
             else:
                 lldp_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
+            lldp_json = json.dumps(lldp_json)
 
         return lldp_json
 
@@ -325,9 +330,10 @@ class Plugin:
 
             else:
                 mac_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
+            mac_json = json.dumps(mac_json)
 
         return mac_json
 
@@ -368,9 +374,10 @@ class Plugin:
 
             else:
                 ospf_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
+            ospf_json = json.dumps(ospf_json)
 
         return ospf_json
 
@@ -411,9 +418,10 @@ class Plugin:
 
             else:
                 routing_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
+            routing_json = json.dumps(routing_json)
 
         return routing_json
 
@@ -453,9 +461,10 @@ class Plugin:
 
             else:
                 vlan_json = {
-                    "status": "error",
-                    "error": "Unknown Error"
+                    "status": f"{self.vendor} plugin error",
+                    "error": str(e)
                 }
+            vlan_json = json.dumps(vlan_json)
 
         return vlan_json
 
