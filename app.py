@@ -75,8 +75,6 @@ import endpoints.switching as switching
 import endpoints.routing as routing
 import endpoints.api as api
 
-import security.basic_auth as basic_auth
-
 import plugins.plugin as plugin
 
 import config
@@ -201,51 +199,6 @@ def sites_endpoint():
         response = endpoint.response
 
     return json.dumps(response), code
-
-    # Check if the Authorization header is present
-    if request.headers.get('Authorization') is None:
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
-
-    # Check if this request is authenticated
-    if not basic_auth.api_auth(request.headers.get('authorization')):
-        # If not, return a 401
-        code = http_codes.HTTP_UNAUTHORIZED
-        response = {
-            "status": "error",
-            "error": "Failed Authentication"
-        }
-        return json.dumps(response), code
-
-    # Handle a GET request
-    if request.method == 'GET':
-        response = endpoint.get_sites()
-
-    # Handle a POST (create a new site)
-    if request.method == 'POST':
-        response = endpoint.post_sites(
-            body=request.json
-        )
-
-    # Handle a PATCH (update a site)
-    if request.method == 'PATCH':
-        response = endpoint.patch_sites(
-            body=request.json
-        )
-
-    # Handle a DELETE (remove a site)
-    if request.method == 'DELETE':
-        response = endpoint.delete_sites(
-            body=request.json
-        )
-
-    # Return the response as JSON, as well as the error code
-    return response
 
 
 # /sites/:site_id
