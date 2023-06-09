@@ -117,8 +117,13 @@ class Sites(api.ApiCall):
         if output:
             self.response = []
             for record in output:
+                # Site ID returns a UUID object, so convert it to a string
+                site_id = str(record[0])
+                site_id = site_id.replace('UUID(', '')
+                site_id = site_id.replace(')', '')
+
                 entry = {
-                    "site_id": record[0],
+                    "site_id": site_id,
                     "site_name": record[1]
                 }
                 self.response.append(entry)
@@ -391,10 +396,20 @@ class SiteDevices(api.ApiCall):
         else:
             self.response = []
             for record in output:
+                # Site ID and device ID return a UUID object
+                #   Convert them to strings
+                device_id = str(record[0])
+                device_id = device_id.replace('UUID(', '')
+                device_id = device_id.replace(')', '')
+
+                site_id = str(record[2])
+                site_id = site_id.replace('UUID(', '')
+                site_id = site_id.replace(')', '')
+
                 entry = {
-                    "device_id": record[0],
+                    "device_id": device_id,
                     "hostname": record[1],
-                    "site": record[2],
+                    "site": site_id,
                     "vendor": record[3],
                     "type": record[4],
                     "auth_type": record[5],
