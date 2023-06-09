@@ -5,7 +5,7 @@ Performs read/write operations on the table
 Supports using the 'with' statement
 
 Modules:
-    3rd Party: pyodbc, traceback
+    3rd Party: pyodbc, traceback, pymssql
     Custom: None
 
 Classes:
@@ -30,11 +30,11 @@ Limitations/Requirements:
     None
 
 Author:
-    Luke Robertson - April 2023
+    Luke Robertson - June 2023
 """
 
 
-import pyodbc
+import pymssql
 import traceback as tb
 
 
@@ -164,13 +164,13 @@ class SqlServer:
 
         Raises
         ------
-        pyodbc.DataError
-        pyodbc.OperationalError
-        pyodbc.IntegrityError
-        pyodbc.InternalError
-        pyodbc.ProgrammingError
-        pyodbc.NotSupportedError
-        pyodbc.Error
+        pymssql.DataError
+        pymssql.OperationalError
+        pymssql.IntegrityError
+        pymssql.InternalError
+        pymssql.ProgrammingError
+        pymssql.NotSupportedError
+        pymssql.Error
 
         Returns
         -------
@@ -179,40 +179,38 @@ class SqlServer:
 
         # Connect to the server and database
         try:
-            self.conn = pyodbc.connect(
-                'Driver={SQL Server};'
-                'Server=%s;'
-                'Database=%s;'
-                'Trusted_Connection=yes;'
-                % (self.server, self.db))
+            self.conn = pymssql.connect(
+                server=self.server,
+                database=self.db
+            )
 
         # Handle errors
-        except pyodbc.DataError as e:
+        except pymssql.DataError as e:
             raise Exception("A data error has occurred") from e
 
-        except pyodbc.OperationalError as e:
+        except pymssql.OperationalError as e:
             raise Exception(
                 ("An operational error has occurred ",
                  "while connecting to the database")
             ) from e
 
-        except pyodbc.IntegrityError as e:
+        except pymssql.IntegrityError as e:
             raise Exception("An Integrity error has occurred") from e
 
-        except pyodbc.InternalError as e:
+        except pymssql.InternalError as e:
             raise Exception("An internal error has occurred") from e
 
-        except pyodbc.ProgrammingError as e:
+        except pymssql.ProgrammingError as e:
             if 'Cannot open database' in str(e):
                 print("Unable to open the database")
                 print("Make sure the name is correct, and credentials are ok")
 
             raise Exception("A programming error has occurred") from e
 
-        except pyodbc.NotSupportedError as e:
+        except pymssql.NotSupportedError as e:
             raise Exception("A 'not supported' error has occurred") from e
 
-        except pyodbc.Error as e:
+        except pymssql.Error as e:
             raise Exception("A generic error has occurred") from e
 
         # If the connection was successful, create a cursor
@@ -273,7 +271,7 @@ class SqlServer:
             self.cursor.execute(sql_string)
 
         # If there's a problem, print errors and quit
-        except pyodbc.ProgrammingError as e:
+        except pymssql.ProgrammingError as e:
             if '42S01' in str(e):
                 print(f"The '{self.table}' table already exists")
             else:
@@ -384,7 +382,7 @@ class SqlServer:
         -------
         entry : list
             A list of entries
-            Each entry is a pyodbc.Row object
+            Each entry is a pymssql.Row object
         None :
             If there was no match
         False : boolean
