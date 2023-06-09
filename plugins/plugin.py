@@ -24,17 +24,22 @@ Misc Variables:
     TBA
 
 Author:
-    Luke Robertson - May 2023
+    Luke Robertson - June 2023
 """
 
-# Imports
-import xmlrpc.client
-import base64
-import json
+if __name__ == '__main__':
+    print('This is a library of functions and cannot be executed directly')
+    print('Please import this library into another Python script')
 
-from sql.sql import SqlServer
-from security.encryption import CryptoSecret
-import config
+else:
+    # Imports
+    import xmlrpc.client
+    import base64
+    import json
+
+    from sql.sql import SqlServer
+    from security.encryption import CryptoSecret
+    import config
 
 
 class Plugin:
@@ -126,15 +131,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
         # Get the device information
         try:
-            device_json = self.server.device_info(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                device_json = self.server.device_info(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                device_json = self.server.device_info(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -174,14 +187,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            hardware_json = self.server.hardware(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                hardware_json = self.server.hardware(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                hardware_json = self.server.hardware(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -221,14 +243,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            interface_json = self.server.interfaces(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                interface_json = self.server.interfaces(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                interface_json = self.server.interfaces(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -268,14 +299,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            lldp_json = self.server.lldp(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                lldp_json = self.server.lldp(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                lldp_json = self.server.lldp(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -312,14 +352,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            mac_json = self.server.mac(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                mac_json = self.server.mac(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                mac_json = self.server.mac(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -356,14 +405,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            ospf_json = self.server.ospf(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                ospf_json = self.server.ospf(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                ospf_json = self.server.ospf(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -400,14 +458,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            routing_json = self.server.routing(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                routing_json = self.server.routing(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                routing_json = self.server.routing(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -443,14 +510,23 @@ class Plugin:
         """
 
         # Get the username and password for the device
-        host, username, password = self.authenticate(device_id=device_id)
+        host, auth_type, username, password, token = self.authenticate(
+            device_id=device_id
+        )
 
+        # Get the device information
         try:
-            vlan_json = self.server.vlans(
-                host,
-                username,
-                password
-            )
+            if auth_type == 'secret':
+                vlan_json = self.server.vlans(
+                    host,
+                    username,
+                    password
+                )
+            elif auth_type == 'token':
+                vlan_json = self.server.vlans(
+                    host,
+                    token
+                )
 
         except Exception as e:
             if 'target machine actively refused it' in str(e):
@@ -482,7 +558,17 @@ class Plugin:
 
         Returns
         -------
-        TBA
+        tuple, depending on the authentication type
+        host : str
+            The IP address or hostname of the device
+        auth_type : str
+            The type of authentication to use
+        user : str
+            The username to authenticate with
+        password : str
+            The password to authenticate with
+        token : str
+            The token to authenticate with
         """
 
         # Connect to the database and get a list devices in a site
@@ -496,16 +582,26 @@ class Plugin:
                 value=device_id
             )[0]
 
+        auth_type = output[5]
         host = output[1]
-        user = output[6]
-        secret = output[7]
-        salt = output[8]
 
-        with CryptoSecret() as decryptor:
+        # For devices wuth a username and password
+        if auth_type == 'secret':
+            user = output[6]
+            secret = output[7]
+            salt = output[8]
+
             # Decrypt the password
-            password = decryptor.decrypt(
-                secret=secret,
-                salt=base64.urlsafe_b64decode(salt.encode())
-            )
+            with CryptoSecret() as decryptor:
+                password = decryptor.decrypt(
+                    secret=secret,
+                    salt=base64.urlsafe_b64decode(salt.encode())
+                )
 
-        return host, user, password
+            return host, auth_type, user, password, None
+
+        # For devices with a token
+        elif auth_type == 'token':
+            token = output[9]
+
+            return host, auth_type, None, None, token
